@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -21,10 +23,12 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import si.uni_lj.fri.pbd.dragonhack.databinding.ActivityMapsBinding
 import android.util.Log
+import com.google.android.gms.maps.model.Marker
 import okhttp3.*
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.File
 import java.io.IOException
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -37,6 +41,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var currentLocation: Location
 
+    private val markerAudioMap = HashMap<Marker, File>()
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -44,25 +51,40 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         setContentView(binding.root)
 
         //check for permissions
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             //when permission granted
             //do nothing
         } else {
             //when permission not granted
             //request permission
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), locationPermissionCode)
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                locationPermissionCode
+            )
         }
 
         //check for storage permissions
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             //when permission granted
             //do nothing
         } else {
             //when permission not granted
             //request permission
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), locationPermissionCode)
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                locationPermissionCode
+            )
         }
-
 
 
         val bottomNavigation: BottomNavigationView = findViewById(R.id.bottom_navigation)
@@ -72,9 +94,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     openNearby()
                 }
                 R.id.action_profile -> {
-                    if (isLoggedIn){
+                    if (isLoggedIn) {
                         openProfile()
-                    } else{
+                    } else {
                         loginRedirect()
                     }
 
@@ -107,6 +129,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
     }
+
     private fun addMarkerAtCurrentLocation() {
         val currentLatLng = LatLng(currentLocation.latitude, currentLocation.longitude)
         mMap.addMarker(
@@ -125,10 +148,26 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
     }
+
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        mMap.setOnMarkerClickListener { marker ->
+            val audioFile = markerAudioMap[marker]
+
+            // Now you can use audioUrl to play the audio file.
+            if (audioFile != null) {
+                playAudio(audioFile)
+            }
+            marker.showInfoWindow()
+
+            true
+        }
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             mMap.isMyLocationEnabled = true
             fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                 if (location != null) {
@@ -141,7 +180,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
             }
         } else {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), locationPermissionCode)
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                locationPermissionCode
+            )
 
         }
 
@@ -162,7 +205,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
 
-
     private fun openNearby() {
         val intent = Intent(this, NearbyActivity::class.java)
         val lat = currentLocation.latitude
@@ -175,7 +217,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun fetchDataFromServer() {
-        val url = "http://212.101.137.122:8000/audios/nearby/?latitude=${currentLocation.latitude}&longitude=${currentLocation.longitude}"
+        val url =
+            "http://212.101.137.122:8000/audios/nearby/?latitude=${currentLocation.latitude}&longitude=${currentLocation.longitude}"
         // Create an OkHttp client
         val client = OkHttpClient()
 
@@ -202,10 +245,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                         for (i in 0 until jsonArray.length()) {
                             val audioObject = jsonArray.getJSONObject(i)
-                            val latitude = audioObject.getJSONObject("location").getJSONArray("coordinates").getDouble(1)
-                            val longitude = audioObject.getJSONObject("location").getJSONArray("coordinates").getDouble(0)
-
+                            val latitude =
+                                audioObject.getJSONObject("location").getJSONArray("coordinates")
+                                    .getDouble(1)
+                            val longitude =
+                                audioObject.getJSONObject("location").getJSONArray("coordinates")
+                                    .getDouble(0)
+                            val audioUrl = audioObject.getString("filename")
                             val title = audioObject.getString("title")
+                            val entryId = audioObject.getString("entry_id")
+                            val audioFile = getAudioFile(entryId)
                             Log.i(
                                 "TESTESTEST",
                                 "latitude: $latitude, longitude: $longitude, title: $title"
@@ -217,15 +266,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                             // CREATE MARKER
                             val marker = MarkerOptions().position(locationLatLng).title(title)
                             markers.add(marker)
+
                             Log.d("MARKERS", "$markers")
 
                             // UPDATE UI IN MAIN THREAD
                             handler.post {
-                                mMap.addMarker(marker)
+                                val markerInstance = mMap.addMarker(marker)
+                                if (markerInstance != null && audioFile != null) {
+                                    markerAudioMap[markerInstance] = audioFile
+                                }
                             }
                         }
-
-
 
 
                     } catch (e: JSONException) {
@@ -236,8 +287,45 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         })
     }
 
+    private fun getAudioFile(entryId: String): File? {
+        val url = "http://212.101.137.122:8000/audios/$entryId"
+        val client = OkHttpClient()
+
+        val request = Request.Builder().url(url).build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("Download", "Failed to download file", e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val file = File(getExternalFilesDir(null), "$entryId.mp3")
+
+                response.body?.byteStream()?.use { inputStream ->
+                    file.outputStream().use { fileOut ->
+                        inputStream.copyTo(fileOut)
+                    }
+                }
+            }
+        })
+        return File(getExternalFilesDir(null), "$entryId.mp3")
+    }
+
+    private fun playAudio(audioFile: File) {
+        if (audioFile != null) {
+            // Create a new media player and set the listeners
+            val mediaPlayer = MediaPlayer()
+            mediaPlayer.setDataSource(audioFile.absolutePath)
+            mediaPlayer.prepare()
+            mediaPlayer.start()
+
+        }
+    }
 
 }
+
+
+
 
 
 
