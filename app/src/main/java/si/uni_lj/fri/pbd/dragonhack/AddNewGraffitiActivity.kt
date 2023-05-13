@@ -93,7 +93,7 @@ class AddNewGraffitiActivity : AppCompatActivity() {
 
         saveBtn.setOnClickListener() {
             //save recording
-            val file = File(path)
+            val file = java.io.File(path)
             val title = "recording"
             val latitude = intent.getDoubleExtra("latitude", 0.0)
             val longitude = intent.getDoubleExtra("longitude", 0.0)

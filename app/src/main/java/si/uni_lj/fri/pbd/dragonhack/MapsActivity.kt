@@ -5,11 +5,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
-import android.widget.Button
+import android.os.Handler
+import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -23,6 +21,11 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import si.uni_lj.fri.pbd.dragonhack.databinding.ActivityMapsBinding
 import android.util.Log
+import okhttp3.*
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.IOException
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -59,6 +62,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             //request permission
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), locationPermissionCode)
         }
+
+
 
         val bottomNavigation: BottomNavigationView = findViewById(R.id.bottom_navigation)
         bottomNavigation.setOnItemSelectedListener { item ->
@@ -130,12 +135,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     currentLocation = location
                     val currentLatLng = LatLng(location.latitude, location.longitude)
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
+                    // GET all the data from the server
+                    fetchDataFromServer()
                 }
+
             }
         } else {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), locationPermissionCode)
 
         }
+
+
     }
 
     override fun onRequestPermissionsResult(
@@ -164,8 +174,75 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         startActivity(intent)
     }
 
+    private fun fetchDataFromServer() {
+        val url = "http://212.101.137.122:8000/audios/nearby/?latitude=${currentLocation.latitude}&longitude=${currentLocation.longitude}"
+        // Create an OkHttp client
+        val client = OkHttpClient()
+
+        // Create a request with the endpoint you want to hit
+        val request = Request.Builder()
+            .url(url)
+            .build()
+
+        // Make the network request asynchronously
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("GET Request", "Failed to get response: ${e.message}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val handler = Handler(Looper.getMainLooper())
+                val responseBody = response.body?.string()
+                if (responseBody != null) {
+                    try {
+                        val jsonObject = JSONObject(responseBody)
+                        val jsonArray = jsonObject.getJSONArray("audios_nearby")
+
+                        val markers = mutableListOf<MarkerOptions>()
+
+                        for (i in 0 until jsonArray.length()) {
+                            val audioObject = jsonArray.getJSONObject(i)
+                            val latitude = audioObject.getJSONObject("location").getJSONArray("coordinates").getDouble(1)
+                            val longitude = audioObject.getJSONObject("location").getJSONArray("coordinates").getDouble(0)
+
+                            val title = audioObject.getString("title")
+                            Log.i(
+                                "TESTESTEST",
+                                "latitude: $latitude, longitude: $longitude, title: $title"
+                            )
+
+                            // Create LatLng object from latitude and longitude
+                            val locationLatLng = LatLng(latitude, longitude)
+                            Log.d("LOCATIONS", "$locationLatLng")
+                            // CREATE MARKER
+                            val marker = MarkerOptions().position(locationLatLng).title(title)
+                            markers.add(marker)
+                            Log.d("MARKERS", "$markers")
+
+                            // UPDATE UI IN MAIN THREAD
+                            handler.post {
+                                mMap.addMarker(marker)
+                            }
+                        }
+
+
+
+
+                    } catch (e: JSONException) {
+                        Log.e("GET Request", "Failed to parse JSON: ${e.message}")
+                    }
+                }
+            }
+        })
+    }
 
 
 }
+
+
+
+
+
+
 
 

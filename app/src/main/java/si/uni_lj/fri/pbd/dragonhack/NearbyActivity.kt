@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import okhttp3.*
+import org.json.JSONObject
 import java.io.IOException
 
 
@@ -37,6 +38,12 @@ class NearbyActivity : AppCompatActivity() {
                 val responseBody = response.body?.string()
                 if (responseBody != null) {
                     Log.d("GET Request", responseBody)
+                    val jsonObject = JSONObject(responseBody)
+                    val data = jsonObject.getJSONArray("audios_nearby")
+                    for (i in 0 until data.length()) {
+                        val item = data.getJSONObject(i)
+                        Log.d("NEARBY ITEM", item.toString())
+                    }
                 }
             }
         })
