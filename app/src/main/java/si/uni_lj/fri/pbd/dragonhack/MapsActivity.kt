@@ -26,6 +26,7 @@ import android.util.Log
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
+    private var isLoggedIn: Boolean = false
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -67,9 +68,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     openNearby()
                 }
                 R.id.action_profile -> {
-                    // Handle "My Profile" click
-                    val intent = Intent(this, ProfileActivity::class.java)
-                    startActivity(intent)
+                    if (isLoggedIn){
+                        openProfile()
+                    } else{
+                        loginRedirect()
+                    }
+
                 }
                 R.id.action_settings -> {
                     // Change to SettingsActivity
@@ -106,6 +110,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 .position(currentLatLng)
                 .title("New Graffiti") // you can set the title of your marker
         )
+    }
+
+    private fun openProfile() {
+        val intent = Intent(this, ProfileActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun loginRedirect() {
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
     }
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
