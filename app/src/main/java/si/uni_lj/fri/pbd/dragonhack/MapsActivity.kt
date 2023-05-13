@@ -25,6 +25,7 @@ import si.uni_lj.fri.pbd.dragonhack.databinding.ActivityMapsBinding
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
+    private var isLoggedIn: Boolean = false
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -45,7 +46,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     // Handle "Nearby" click
                 }
                 R.id.action_profile -> {
-                    openProfile()
+                    if (isLoggedIn){
+                        openProfile()
+                    } else{
+                        loginRedirect()
+                    }
+
                 }
                 R.id.action_settings -> {
                     // Handle "Settings" click
@@ -75,6 +81,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun openProfile() {
         val intent = Intent(this, ProfileActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun loginRedirect() {
+        val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
     }
     override fun onMapReady(googleMap: GoogleMap) {
