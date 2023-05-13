@@ -111,12 +111,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         )
     }
 
-    private fun openProfile() {
+    fun openProfile() {
         val intent = Intent(this, ProfileActivity::class.java)
         startActivity(intent)
     }
 
-    private fun loginRedirect() {
+    fun loginRedirect() {
         val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
     }
@@ -151,10 +151,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun openProfile() {
-        val intent = Intent(this, ProfileActivity::class.java)
-        startActivity(intent)
-    }
+
 
     private fun openNearby() {
         val intent = Intent(this, NearbyActivity::class.java)
@@ -167,10 +164,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         startActivity(intent)
     }
 
-    private fun loginRedirect() {
-        val intent = Intent(this, LoginActivity::class.java)
-        startActivity(intent)
-    }
+
 
 }
 
