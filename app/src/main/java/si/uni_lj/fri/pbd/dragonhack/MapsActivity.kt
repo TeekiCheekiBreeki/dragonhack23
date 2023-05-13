@@ -1,6 +1,7 @@
 package si.uni_lj.fri.pbd.dragonhack
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
@@ -44,7 +45,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     // Handle "Nearby" click
                 }
                 R.id.action_profile -> {
-                    // Handle "My Profile" click
+                    openProfile()
                 }
                 R.id.action_settings -> {
                     // Handle "Settings" click
@@ -70,6 +71,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 .position(currentLatLng)
                 .title("New Graffiti") // you can set the title of your marker
         )
+    }
+
+    private fun openProfile() {
+        val intent = Intent(this, ProfileActivity::class.java)
+        startActivity(intent)
     }
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
