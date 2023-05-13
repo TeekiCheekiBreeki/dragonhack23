@@ -64,7 +64,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.action_nearby -> {
-                    // Handle "Nearby" click
                     openNearby()
                 }
                 R.id.action_profile -> {
@@ -152,6 +151,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    private fun openProfile() {
+        val intent = Intent(this, ProfileActivity::class.java)
+        startActivity(intent)
+    }
+
     private fun openNearby() {
         val intent = Intent(this, NearbyActivity::class.java)
         val lat = currentLocation.latitude
@@ -160,6 +164,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         Log.d("CURRENT LONGITUDE:", "$lon")
         intent.putExtra("lat", lat)
         intent.putExtra("lon", lon)
+        startActivity(intent)
+    }
+
+    private fun loginRedirect() {
+        val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
     }
 
