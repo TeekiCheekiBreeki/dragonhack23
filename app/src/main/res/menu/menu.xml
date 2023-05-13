@@ -1,9 +1,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/menu_item_1"
-        android:title="Item 1" />
+        android:id="@+id/action_nearby"
+        android:icon="@drawable/nearby"
+    android:title="Nearby" />
     <item
-        android:id="@+id/menu_item_2"
-        android:title="Item 2" />
-    <!-- Add more items as needed -->
+        android:id="@+id/add_new_graffiti"
+        android:icon="@drawable/add"
+        android:title="New Graffiti"/>
+    <item
+        android:id="@+id/action_profile"
+        android:icon="@drawable/profile"
+    android:title="My Profile" />
+    <item
+        android:id="@+id/action_settings"
+        android:icon="@drawable/settings"
+    android:title="Settings" />
 </menu>
