@@ -109,7 +109,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
                 R.id.add_new_graffiti -> {
                     // Handle "Add new graffiti" click
-                    addMarkerAtCurrentLocation()
+                    //addMarkerAtCurrentLocation()
                     // Open new window for adding new graffiti(recording sound)
                     val intent = Intent(this, AddNewGraffitiActivity::class.java).apply {
                         putExtra("latitude", currentLocation.getLatitude())
@@ -117,6 +117,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     }
 
                     startActivity(intent)
+
 
                 }
             }
@@ -130,14 +131,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
-    private fun addMarkerAtCurrentLocation() {
+    /*private fun addMarkerAtCurrentLocation() {
         val currentLatLng = LatLng(currentLocation.latitude, currentLocation.longitude)
         mMap.addMarker(
             MarkerOptions()
                 .position(currentLatLng)
                 .title("New Graffiti") // you can set the title of your marker
         )
-    }
+    }*/
 
     fun openProfile() {
         val intent = Intent(this, ProfileActivity::class.java)

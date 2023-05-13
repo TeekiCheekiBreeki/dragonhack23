@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.EditText
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
@@ -94,7 +95,8 @@ class AddNewGraffitiActivity : AppCompatActivity() {
         saveBtn.setOnClickListener() {
             //save recording
             val file = java.io.File(path)
-            val title = "recording"
+            val titleEditText = findViewById<EditText>(R.id.et_title) // Get the EditText
+            val title = titleEditText.text.toString() // Get the text entered by the user
             val latitude = intent.getDoubleExtra("latitude", 0.0)
             val longitude = intent.getDoubleExtra("longitude", 0.0)
 
