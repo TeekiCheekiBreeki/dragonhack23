@@ -20,6 +20,9 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import si.uni_lj.fri.pbd.dragonhack.databinding.ActivityMapsBinding
 import android.util.Log
+import android.view.LayoutInflater
+import android.widget.ListView
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.google.android.gms.maps.model.*
 import okhttp3.*
@@ -46,6 +49,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private val markerOptionsAudioMap = HashMap<MarkerOptions, File>()
 
     private val standaloneMarkers = mutableListOf<MarkerOptions>()
+
+    private val markerLikesMap = HashMap<MarkerOptions, Int>()
+    private val markerDislikesMap = HashMap<MarkerOptions, Int>()
+
 
 
 
@@ -175,6 +182,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 // It's an audio marker
                 playAudio(audioFile)
                 marker.showInfoWindow()
+
+                val markerOptions = MarkerOptions()
+                    .position(marker.position)
+                    .title(marker.title)
+                    .snippet(marker.snippet)
+                showLikeDislikeButtons(markerOptions)
             } else if (cluster != null) {
                 // It's a cluster marker
                 displayMarkerList(cluster)
@@ -182,6 +195,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
             true
         }
+
 
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -211,20 +225,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
-    private fun displayMarkerList(cluster: MarkerCluster) {
-        val markerTitles = cluster.markers.map { it.title }.toTypedArray()
+
+    private fun showMarkersDialog(markers: List<MarkerData>) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_marker, null)
+        val dialogTitle = dialogView.findViewById<TextView>(R.id.dialog_title)
+        val listView = dialogView.findViewById<ListView>(R.id.dialog_listview)
+
+        // Set the title of the dialog
+        dialogTitle.text = "Markers in Cluster"
+
+        // Create and set the adapter for the ListView
+        val markerListAdapter = MarkerListAdapter(this, markers)
+        listView.adapter = markerListAdapter
 
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Markers in cluster")
-
-        builder.setItems(markerTitles) { dialog, which ->
-            val selectedMarker = cluster.markers[which]
-            // Play the audio for the clicked marker.
-            val audioFile = markerOptionsAudioMap[selectedMarker]
-            if (audioFile != null) {
-                playAudio(audioFile)
-            }
-        }
+        builder.setView(dialogView)
 
         builder.setNegativeButton("Cancel") { dialog, _ ->
             dialog.dismiss()
@@ -232,7 +248,33 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         builder.show()
     }
+    private fun displayMarkerList(cluster: MarkerCluster) {
+        val markerDataList = cluster.markers.mapNotNull { markerOptions ->
+            val id = markerOptions.title
+            val likes = markerLikesMap[markerOptions] ?: 0
+            val dislikes = markerDislikesMap[markerOptions] ?: 0
+            val audioFile = markerOptionsAudioMap[markerOptions]
+            if (id != null && audioFile != null) {
+                MarkerData(id, likes, dislikes, audioFile)
+            } else {
+                null
+            }
+        }
 
+        // Show the dialog with the markers in the cluster
+        showMarkersDialog(markerDataList)
+    }
+
+
+
+
+
+
+    private fun showLikeDislikeButtons(marker: MarkerOptions) {
+        val likes = markerLikesMap[marker] ?: 0
+        val dislikes = markerDislikesMap[marker] ?: 0
+        Log.d("LIKES", "Marker ${marker.title} has $likes likes and $dislikes dislikes")
+    }
 
 
     override fun onRequestPermissionsResult(
@@ -283,6 +325,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         val jsonArray = jsonObject.getJSONArray("audios_nearby")
                         var requestCounter = jsonArray.length()
 
+                        val markerDataList = mutableListOf<MarkerData>()
+
+
                         for (i in 0 until jsonArray.length()) {
                             val audioObject = jsonArray.getJSONObject(i)
                             val latitude = audioObject.getJSONObject("location")
@@ -292,13 +337,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                             val audioUrl = audioObject.getString("filename")
                             val title = audioObject.getString("title")
                             val entryId = audioObject.getString("entry_id")
+                            val numLikes = audioObject.getInt("num_likes")
+                            val numDislikes = audioObject.getInt("num_dislikes")
 
                             getAudioFile(entryId) { audioFile ->
                                 if (audioFile != null) {
                                     val locationLatLng = LatLng(latitude, longitude)
                                     val markerOptions =
-                                        MarkerOptions().position(locationLatLng).title(title)
+                                        MarkerOptions().position(locationLatLng)
+                                            .title(title)
+                                            .snippet("Likes: $numLikes, Dislikes: $numDislikes")
                                     markerOptionsAudioMap[markerOptions] = audioFile
+                                    markerLikesMap[markerOptions] = numLikes
+                                    markerDislikesMap[markerOptions] = numDislikes
+                                    // Create a MarkerData object and add it to the list
+                                    val markerData = MarkerData(entryId, numLikes, numDislikes, audioFile)
+                                    markerDataList.add(markerData)
                                     requestCounter--
                                     var addedToCluster = false
 
@@ -356,7 +410,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                                 MarkerOptions()
                                                     .position(cluster.center)
                                                     .title("Cluster")
-                                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.wave_sound_blue))
+                                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                                             )
                                             if (clusterMarker != null) {
                                                 cluster.markerInstances.add(clusterMarker)
@@ -365,7 +419,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                         }
 
                                         for (marker in standaloneMarkers) {
-                                            marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.wave_sound))
+                                            marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                                             val standaloneMarker = mMap.addMarker(marker)
                                             if (standaloneMarker != null) {
                                                 markerAudioMap[standaloneMarker] = markerOptionsAudioMap[marker]!!
