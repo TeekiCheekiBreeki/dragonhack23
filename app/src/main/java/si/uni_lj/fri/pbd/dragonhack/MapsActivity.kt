@@ -99,6 +99,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             )
         }
 
+        //check for internet permissions
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.INTERNET
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            //when permission granted
+            //do nothing
+        } else {
+            //when permission not granted
+            //request permission
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.INTERNET),
+                locationPermissionCode
+            )
+        }
 
         val bottomNavigation: BottomNavigationView = findViewById(R.id.bottom_navigation)
         bottomNavigation.setOnItemSelectedListener { item ->
@@ -175,26 +192,31 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
         mMap.setOnMarkerClickListener { marker ->
-            val audioFile = markerAudioMap[marker]
-            val cluster = clusterMarkerMap[marker]
+            try {
+                val audioFile = markerAudioMap[marker]
+                val cluster = clusterMarkerMap[marker]
 
-            if (audioFile != null) {
-                // It's an audio marker
-                playAudio(audioFile)
-                marker.showInfoWindow()
+                if (audioFile != null) {
+                    // It's an audio marker
+                    playAudio(audioFile)
+                    marker.showInfoWindow()
 
-                val markerOptions = MarkerOptions()
-                    .position(marker.position)
-                    .title(marker.title)
-                    .snippet(marker.snippet)
-                showLikeDislikeButtons(markerOptions)
-            } else if (cluster != null) {
-                // It's a cluster marker
-                displayMarkerList(cluster)
+                    val markerOptions = MarkerOptions()
+                        .position(marker.position)
+                        .title(marker.title)
+                        .snippet(marker.snippet)
+                    showLikeDislikeButtons(markerOptions)
+                } else if (cluster != null) {
+                    // It's a cluster marker
+                    displayMarkerList(cluster)
+                }
+            } catch (e: Exception) {
+                Log.e("MarkerClick", "Error handling marker click", e)
             }
 
             true
         }
+
 
 
         if (ContextCompat.checkSelfPermission(

@@ -1,4 +1,5 @@
 package si.uni_lj.fri.pbd.dragonhack
+
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
@@ -7,10 +8,17 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.TextView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import okhttp3.FormBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import java.io.File
+import java.io.IOException
 
 data class MarkerData(val id: String, var numLikes: Int, var numDislikes: Int, val audioFile: File)
-
 
 class MarkerListAdapter(private val context: Context, private val markers: List<MarkerData>) : BaseAdapter() {
 
@@ -51,33 +59,63 @@ class MarkerListAdapter(private val context: Context, private val markers: List<
         viewHolder.markerTitle.text = marker.id
         viewHolder.markerLikes.text = "Likes: ${marker.numLikes}"
         viewHolder.markerDislikes.text = "Dislikes: ${marker.numDislikes}"
+        val id = marker.id
 
         viewHolder.likeButton.setOnClickListener {
             marker.numLikes++
             viewHolder.markerLikes.text = "Likes: ${marker.numLikes}"
+            // Send like to the server
+            val url = "http://212.101.137.122:8000/audios/${marker.id}/like_dislike"
+            sendLikeDislike(url, true)
         }
 
         viewHolder.dislikeButton.setOnClickListener {
             marker.numDislikes++
             viewHolder.markerDislikes.text = "Dislikes: ${marker.numDislikes}"
+            // Send dislike to the server
+            val url = "http://212.101.137.122:8000/audios/${marker.id}/like_dislike"
+            sendLikeDislike(url, false)
         }
 
         viewHolder.playButton.setOnClickListener {
-            // play audio of this marker
+            // Play audio of this marker
             playAudio(marker.audioFile)
-
-
         }
 
         return view
     }
-    fun playAudio(audioFile: File) {
-        // play audio file
+
+    private fun sendLikeDislike(url: String, likeValue: Boolean) {
+        val client = OkHttpClient()
+        val urlWithParameter = "$url?like=${likeValue.toString()}"
+
+        val request = Request.Builder()
+            .url(urlWithParameter)
+            .addHeader("accept", "application/json")
+            .post(RequestBody.create(null, ""))
+            .build()
+
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                val response = client.newCall(request).execute()
+                if (!response.isSuccessful) {
+                    throw IOException("Unexpected code $response")
+                } else {
+                    // Handle the response as needed
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+
+    private fun playAudio(audioFile: File) {
+        // Play audio file
         val mediaPlayer = android.media.MediaPlayer()
         mediaPlayer.setDataSource(audioFile.absolutePath)
         mediaPlayer.prepare()
         mediaPlayer.start()
-
     }
 
     private class ViewHolder {

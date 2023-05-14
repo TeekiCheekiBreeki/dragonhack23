@@ -1,5 +1,6 @@
 package si.uni_lj.fri.pbd.dragonhack
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.media.MediaRecorder
@@ -99,17 +100,23 @@ class AddNewGraffitiActivity : AppCompatActivity() {
         }
 
         playBtn.setOnClickListener {
-            //play recording
-            mediaPlayer = MediaPlayer()
-            mediaPlayer?.setDataSource(path)
-            mediaPlayer?.prepare()
-            mediaPlayer?.start()
-            recordBtn.isEnabled = true
+            if (File(path).exists()) {
+                mediaPlayer = MediaPlayer()
+                mediaPlayer?.setDataSource(path)
+                mediaPlayer?.prepare()
+                mediaPlayer?.start()
+                recordBtn.isEnabled = true
+            } else {
+                // File does not exist, show an appropriate message or handle the scenario
+                Log.e("Playback", "File not found")
+            }
         }
+
 
         retryBtn.setOnClickListener(){
             val file = File(path)
             file.delete()
+            recorder = MediaRecorder()
             recordBtn.isEnabled = true
             saveBtn.isEnabled = false
             playBtn.isEnabled = false
@@ -143,6 +150,8 @@ class AddNewGraffitiActivity : AppCompatActivity() {
                 .post(requestBody)
                 .build()
 
+            val intent = Intent(this, MapsActivity::class.java)
+            startActivity(intent)
             GlobalScope.launch(Dispatchers.IO) {
                 try {
                     val response = client.newCall(request).execute()
@@ -159,6 +168,9 @@ class AddNewGraffitiActivity : AppCompatActivity() {
                 }
             }
         }
+
+
+
 
     }
 
