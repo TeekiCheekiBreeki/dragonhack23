@@ -406,6 +406,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                 if(requestCounter == 0){
                                     handler.post {
                                         for (cluster in markerClusters) {
+
                                             val clusterMarker = mMap.addMarker(
                                                 MarkerOptions()
                                                     .position(cluster.center)

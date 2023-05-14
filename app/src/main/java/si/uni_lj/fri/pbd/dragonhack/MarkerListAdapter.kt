@@ -41,6 +41,7 @@ class MarkerListAdapter(private val context: Context, private val markers: List<
             viewHolder.playButton = view.findViewById(R.id.playButton)
             viewHolder.dislikeButton = view.findViewById(R.id.dislikeButton)
             view.tag = viewHolder
+
         } else {
             view = convertView
             viewHolder = convertView.tag as ViewHolder

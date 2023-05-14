@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".AddNewGraffitiActivity"
     android:alpha="0.95"
-    android:background="@drawable/background_img">
+    android:background="@color/white">
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_record"
