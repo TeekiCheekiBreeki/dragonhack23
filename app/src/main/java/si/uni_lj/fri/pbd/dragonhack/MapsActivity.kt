@@ -356,7 +356,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                                 MarkerOptions()
                                                     .position(cluster.center)
                                                     .title("Cluster")
-                                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.wave_sound_blue))
                                             )
                                             if (clusterMarker != null) {
                                                 cluster.markerInstances.add(clusterMarker)
@@ -365,6 +365,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                         }
 
                                         for (marker in standaloneMarkers) {
+                                            marker.icon(BitmapDescriptorFactory.fromResource(R.drawable.wave_sound))
                                             val standaloneMarker = mMap.addMarker(marker)
                                             if (standaloneMarker != null) {
                                                 markerAudioMap[standaloneMarker] = markerOptionsAudioMap[marker]!!
