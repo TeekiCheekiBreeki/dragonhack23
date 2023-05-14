@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -18,14 +17,12 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import si.uni_lj.fri.pbd.dragonhack.databinding.ActivityMapsBinding
 import android.util.Log
-import com.google.android.gms.maps.model.Marker
+import androidx.appcompat.app.AlertDialog
+import com.google.android.gms.maps.model.*
 import okhttp3.*
-import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -42,6 +39,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var currentLocation: Location
 
     private val markerAudioMap = HashMap<Marker, File>()
+    val markerClusters = mutableListOf<MarkerCluster>()
+
+    private val clusterMarkerMap = HashMap<Marker, MarkerCluster>()
+
+    private val markerOptionsAudioMap = HashMap<MarkerOptions, File>()
+
+    private val standaloneMarkers = mutableListOf<MarkerOptions>()
+
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -116,7 +122,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         putExtra("longitude", currentLocation.getLongitude())
                     }
 
-                    startActivity(intent)
+
+                    startActivityForResult(intent, ADD_GRAFFITI_REQUEST_CODE)
+
+
+
 
 
                 }
@@ -152,18 +162,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        googleMap.setMapStyle(
+            MapStyleOptions.loadRawResourceStyle(
+                this, R.raw.custom_map_style));
+
 
         mMap.setOnMarkerClickListener { marker ->
             val audioFile = markerAudioMap[marker]
+            val cluster = clusterMarkerMap[marker]
 
-            // Now you can use audioUrl to play the audio file.
             if (audioFile != null) {
+                // It's an audio marker
                 playAudio(audioFile)
+                marker.showInfoWindow()
+            } else if (cluster != null) {
+                // It's a cluster marker
+                displayMarkerList(cluster)
             }
-            marker.showInfoWindow()
 
             true
         }
+
         if (ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -192,6 +211,30 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
+    private fun displayMarkerList(cluster: MarkerCluster) {
+        val markerTitles = cluster.markers.map { it.title }.toTypedArray()
+
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Markers in cluster")
+
+        builder.setItems(markerTitles) { dialog, which ->
+            val selectedMarker = cluster.markers[which]
+            // Play the audio for the clicked marker.
+            val audioFile = markerOptionsAudioMap[selectedMarker]
+            if (audioFile != null) {
+                playAudio(audioFile)
+            }
+        }
+
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.dismiss()
+        }
+
+        builder.show()
+    }
+
+
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -218,17 +261,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun fetchDataFromServer() {
-        val url =
-            "http://212.101.137.122:8000/audios/nearby/?latitude=${currentLocation.latitude}&longitude=${currentLocation.longitude}"
-        // Create an OkHttp client
-        val client = OkHttpClient()
+        val url = "http://212.101.137.122:8000/audios/nearby/?latitude=${currentLocation.latitude}&longitude=${currentLocation.longitude}"
 
-        // Create a request with the endpoint you want to hit
+        val client = OkHttpClient()
         val request = Request.Builder()
             .url(url)
             .build()
 
-        // Make the network request asynchronously
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e("GET Request", "Failed to get response: ${e.message}")
@@ -237,58 +276,170 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             override fun onResponse(call: Call, response: Response) {
                 val handler = Handler(Looper.getMainLooper())
                 val responseBody = response.body?.string()
+
                 if (responseBody != null) {
                     try {
                         val jsonObject = JSONObject(responseBody)
                         val jsonArray = jsonObject.getJSONArray("audios_nearby")
-
-                        val markers = mutableListOf<MarkerOptions>()
+                        var requestCounter = jsonArray.length()
 
                         for (i in 0 until jsonArray.length()) {
                             val audioObject = jsonArray.getJSONObject(i)
-                            val latitude =
-                                audioObject.getJSONObject("location").getJSONArray("coordinates")
-                                    .getDouble(1)
-                            val longitude =
-                                audioObject.getJSONObject("location").getJSONArray("coordinates")
-                                    .getDouble(0)
+                            val latitude = audioObject.getJSONObject("location")
+                                .getJSONArray("coordinates").getDouble(1)
+                            val longitude = audioObject.getJSONObject("location")
+                                .getJSONArray("coordinates").getDouble(0)
                             val audioUrl = audioObject.getString("filename")
                             val title = audioObject.getString("title")
                             val entryId = audioObject.getString("entry_id")
-                            val audioFile = getAudioFile(entryId)
-                            Log.i(
-                                "TESTESTEST",
-                                "latitude: $latitude, longitude: $longitude, title: $title"
-                            )
 
-                            // Create LatLng object from latitude and longitude
-                            val locationLatLng = LatLng(latitude, longitude)
-                            Log.d("LOCATIONS", "$locationLatLng")
-                            // CREATE MARKER
-                            val marker = MarkerOptions().position(locationLatLng).title(title)
-                            markers.add(marker)
+                            getAudioFile(entryId) { audioFile ->
+                                if (audioFile != null) {
+                                    val locationLatLng = LatLng(latitude, longitude)
+                                    val markerOptions =
+                                        MarkerOptions().position(locationLatLng).title(title)
+                                    markerOptionsAudioMap[markerOptions] = audioFile
+                                    requestCounter--
+                                    var addedToCluster = false
 
-                            Log.d("MARKERS", "$markers")
+                                    // Check each cluster if the new marker can be added.
+                                    for (cluster in markerClusters) {
+                                        for (existingMarker in cluster.markers) {
+                                            val distance = calculateDistance(
+                                                existingMarker.position,
+                                                locationLatLng
+                                            )
+                                            Log.d(
+                                                "ADDING TO CLUSTER",
+                                                "title: ${existingMarker.title}, distance: $distance"
+                                            )
+                                            if (distance <= 200.0) {
+                                                cluster.markers.add(markerOptions)
+                                                standaloneMarkers.remove(markerOptions)  // Add this line
+                                                addedToCluster = true
+                                                break
+                                            }
+                                        }
 
-                            // UPDATE UI IN MAIN THREAD
-                            handler.post {
-                                val markerInstance = mMap.addMarker(marker)
-                                if (markerInstance != null && audioFile != null) {
-                                    markerAudioMap[markerInstance] = audioFile
+                                    }
+
+                                    // Check standalone markers if a new cluster can be created.
+                                    if (!addedToCluster) {
+                                        var markerForNewCluster: MarkerOptions? = null
+                                        for (existingMarker in standaloneMarkers) {
+                                            val distance = calculateDistance(
+                                                existingMarker.position,
+                                                locationLatLng
+                                            )
+                                            if (distance <= 200.0) {
+                                                markerForNewCluster = existingMarker
+                                                break
+                                            }
+                                        }
+
+                                        if (markerForNewCluster != null) {
+                                            standaloneMarkers.remove(markerForNewCluster)
+                                            val newCluster = MarkerCluster(
+                                                locationLatLng,
+                                                mutableListOf(markerForNewCluster, markerOptions)
+                                            )
+                                            markerClusters.add(newCluster)
+                                        } else {
+                                            standaloneMarkers.add(markerOptions)
+                                        }
+                                    }
+                                }
+                                if(requestCounter == 0){
+                                    handler.post {
+                                        for (cluster in markerClusters) {
+                                            val clusterMarker = mMap.addMarker(
+                                                MarkerOptions()
+                                                    .position(cluster.center)
+                                                    .title("Cluster")
+                                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                                            )
+                                            if (clusterMarker != null) {
+                                                cluster.markerInstances.add(clusterMarker)
+                                                clusterMarkerMap[clusterMarker] = cluster
+                                            }
+                                        }
+
+                                        for (marker in standaloneMarkers) {
+                                            val standaloneMarker = mMap.addMarker(marker)
+                                            if (standaloneMarker != null) {
+                                                markerAudioMap[standaloneMarker] = markerOptionsAudioMap[marker]!!
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                        }
+
+
+                                }
 
 
                     } catch (e: JSONException) {
-                        Log.e("GET Request", "Failed to parse JSON: ${e.message}")
+                        Log.d("GET Request", "Failed to parse JSON: ${e.message}")
                     }
                 }
             }
         })
     }
 
-    private fun getAudioFile(entryId: String): File? {
+    private fun clusterMarkers(markers: List<MarkerOptions>, maxDistance: Double): Pair<List<MarkerOptions>, List<MarkerCluster>> {
+        val standaloneMarkers = mutableListOf<MarkerOptions>()
+        val clusters = mutableListOf<MarkerCluster>()
+
+        for (marker in markers) {
+            var nearestCluster: MarkerCluster? = null
+            var nearestDistance = Double.MAX_VALUE
+
+            for (cluster in clusters) {
+                val distance = calculateDistance(cluster.center, marker.position)
+                if (distance < nearestDistance) {
+                    nearestDistance = distance
+                    nearestCluster = cluster
+                }
+            }
+
+            if (nearestCluster != null && nearestDistance <= maxDistance) {
+                nearestCluster.markers.add(marker)
+                // Update the cluster's center
+                nearestCluster.center = LatLng(
+                    (nearestCluster.center.latitude * (nearestCluster.markers.size - 1) + marker.position.latitude) / nearestCluster.markers.size,
+                    (nearestCluster.center.longitude * (nearestCluster.markers.size - 1) + marker.position.longitude) / nearestCluster.markers.size
+                )
+            } else {
+                standaloneMarkers.add(marker)
+            }
+        }
+
+        return Pair(standaloneMarkers, clusters)
+    }
+
+
+
+                        private fun calculateDistance(location1: LatLng, location2: LatLng): Double {
+        val earthRadius = 6371000.0 // Earth's radius in meters
+        val lat1 = Math.toRadians(location1.latitude)
+        val lon1 = Math.toRadians(location1.longitude)
+        val lat2 = Math.toRadians(location2.latitude)
+        val lon2 = Math.toRadians(location2.longitude)
+
+        val deltaLat = lat2 - lat1
+        val deltaLon = lon2 - lon1
+
+        val a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+                Math.cos(lat1) * Math.cos(lat2) *
+                Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2)
+
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+        return earthRadius * c
+    }
+
+
+    private fun getAudioFile(entryId: String, callback: (File?) -> Unit) {
         val url = "http://212.101.137.122:8000/audios/$entryId"
         val client = OkHttpClient()
 
@@ -297,6 +448,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e("Download", "Failed to download file", e)
+                callback(null)
             }
 
             override fun onResponse(call: Call, response: Response) {
@@ -307,10 +459,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         inputStream.copyTo(fileOut)
                     }
                 }
+
+                callback(file)
             }
         })
-        return File(getExternalFilesDir(null), "$entryId.mp3")
     }
+
 
     private fun playAudio(audioFile: File) {
         if (audioFile != null) {
@@ -322,8 +476,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         }
     }
+    companion object {
+        const val ADD_GRAFFITI_REQUEST_CODE = 101
+    }
 
 }
+data class MarkerCluster(
+    var center: LatLng,
+    val markers: MutableList<MarkerOptions>,
+    val markerInstances: MutableList<Marker> = mutableListOf()
+)
+
 
 
 

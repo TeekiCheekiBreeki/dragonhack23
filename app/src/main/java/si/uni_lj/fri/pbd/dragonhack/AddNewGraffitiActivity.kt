@@ -1,5 +1,6 @@
 package si.uni_lj.fri.pbd.dragonhack
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.media.MediaRecorder
@@ -107,14 +108,22 @@ class AddNewGraffitiActivity : AppCompatActivity() {
             recordBtn.isEnabled = true
         }
 
-        retryBtn.setOnClickListener(){
+        retryBtn.setOnClickListener() {
             val file = File(path)
             file.delete()
+
+            // Release the old MediaRecorder if it's not null
+            recorder?.release()
+
+            // Create a new MediaRecorder
+            recorder = MediaRecorder()
+
             recordBtn.isEnabled = true
             saveBtn.isEnabled = false
             playBtn.isEnabled = false
             retryBtn.isEnabled = false
         }
+
 
 
 
@@ -152,6 +161,15 @@ class AddNewGraffitiActivity : AppCompatActivity() {
                         val responseBody = response.body?.string()
                         if (responseBody != null) {
                             Log.i("response", responseBody)
+                            val resultIntent = Intent().apply {
+                                putExtra("newGraffitiTitle", title)
+                                putExtra("newGraffitiLatitude", latitude)
+                                putExtra("newGraffitiLongitude", longitude)
+                                putExtra("newGraffitiAudioPath", path)
+                            }
+                            setResult(RESULT_OK, resultIntent)
+                            finish()
+
                         }
                     }
                 } catch (e: IOException) {
