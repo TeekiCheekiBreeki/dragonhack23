@@ -6,8 +6,11 @@ import android.media.MediaRecorder
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.view.animation.LinearInterpolator
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
@@ -35,15 +38,19 @@ class AddNewGraffitiActivity : AppCompatActivity() {
         val playBtn = findViewById<Button>(R.id.btn_play)
         val stopBtn = findViewById<Button>(R.id.btn_stp)
         val saveBtn = findViewById<Button>(R.id.btn_save)
+        val retryBtn = findViewById<Button>(R.id.btn_retry)
         val path = "${externalCacheDir?.absolutePath}/recording.wav"
 
         //disable buttons
         recordBtn.isEnabled = false
         playBtn.isEnabled = false
         stopBtn.isEnabled = false
+        retryBtn.isEnabled = false
+        saveBtn.isEnabled = false
+        stopBtn.visibility = View.INVISIBLE
+
 
         //path
-
 
         recorder = MediaRecorder()
 
@@ -71,16 +78,24 @@ class AddNewGraffitiActivity : AppCompatActivity() {
             recorder?.start()
             stopBtn.isEnabled = true
             recordBtn.isEnabled = false
+            recordBtn.visibility = View.INVISIBLE
+            stopBtn.visibility = View.VISIBLE
 
         }
 
         stopBtn.setOnClickListener {
             //stop recording
             recorder?.stop()
+            recorder?.reset()
             recorder?.release()
             recorder = null
             playBtn.isEnabled = true
             stopBtn.isEnabled = false
+            retryBtn.isEnabled = true
+            recordBtn.isEnabled = false
+            saveBtn.isEnabled = true
+            recordBtn.visibility = View.VISIBLE
+            stopBtn.visibility = View.INVISIBLE
         }
 
         playBtn.setOnClickListener {
@@ -91,6 +106,17 @@ class AddNewGraffitiActivity : AppCompatActivity() {
             mediaPlayer?.start()
             recordBtn.isEnabled = true
         }
+
+        retryBtn.setOnClickListener(){
+            val file = File(path)
+            file.delete()
+            recordBtn.isEnabled = true
+            saveBtn.isEnabled = false
+            playBtn.isEnabled = false
+            retryBtn.isEnabled = false
+        }
+
+
 
         saveBtn.setOnClickListener() {
             //save recording
