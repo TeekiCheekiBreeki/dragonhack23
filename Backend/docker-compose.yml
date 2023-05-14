@@ -1,0 +1,25 @@
+version: '3'
+services:
+  fastapi:
+    image: tilkec23/audio-mongodb
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./audio_files:/app/audio_files
+    networks:
+      my-network:
+  mongodb:
+    image: mongo:4.4.6
+    container_name: audio-mongodb-container
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      my-network:
+
+volumes:
+  mongodb-data:
+
+networks:
+  my-network:
