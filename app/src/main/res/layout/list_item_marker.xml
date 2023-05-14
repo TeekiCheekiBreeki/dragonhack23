@@ -27,31 +27,31 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/likeButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="2dp"
-            android:background="@drawable/icons8like50"
+            android:layout_width="74dp"
+            android:layout_height="70dp"
+            android:layout_marginStart="8dp"
             android:backgroundTint="@color/black"
+            android:background="@drawable/icons8like50"
             android:text="Like"
             android:textSize="0sp" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/dislikeButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="2dp"
-            android:background="@drawable/icons8unlike50"
+            android:layout_width="74dp"
+            android:layout_height="70dp"
+            android:layout_marginStart="8dp"
             android:backgroundTint="@color/black"
+            android:background="@drawable/icons8unlike50"
             android:text="Dislike"
             android:textSize="0sp" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/playButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="2dp"
-            android:background="@drawable/icons8play50"
+            android:layout_width="74dp"
+            android:layout_height="70dp"
+            android:layout_marginStart="8dp"
             android:backgroundTint="@color/black"
+            android:background="@drawable/icons8play50"
             android:text="Play"
             android:textSize="0sp" />
 

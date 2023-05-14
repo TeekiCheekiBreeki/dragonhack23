@@ -100,7 +100,7 @@ class AddNewGraffitiActivity : AppCompatActivity() {
         }
 
         playBtn.setOnClickListener {
-            if (File(path).exists()) {
+            if (java.io.File(path).exists()) {
                 mediaPlayer = MediaPlayer()
                 mediaPlayer?.setDataSource(path)
                 mediaPlayer?.prepare()
@@ -114,7 +114,7 @@ class AddNewGraffitiActivity : AppCompatActivity() {
 
 
         retryBtn.setOnClickListener(){
-            val file = File(path)
+            val file = java.io.File(path)
             file.delete()
             recorder = MediaRecorder()
             recordBtn.isEnabled = true
