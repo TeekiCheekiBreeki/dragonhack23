@@ -12,127 +12,82 @@
         android:id="@+id/btn_record"
         android:layout_width="90dp"
         android:layout_height="90dp"
-        android:layout_marginTop="550dp"
-        android:layout_marginRight="250dp"
+        android:layout_marginTop="40dp"
         android:background="@drawable/circle_button_blue"
         android:padding="10dp"
         android:text="Record"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
+
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.386" />
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
 
-    <androidx.appcompat.widget.AppCompatButton
+    <ImageButton
         android:id="@+id/btn_play"
-        android:layout_width="106dp"
-        android:layout_height="29dp"
-        android:background="@drawable/button_gradient"
-        android:text="Play"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="56dp"
+        android:background="@drawable/circle_button_blue"
+        android:src="@drawable/ic_play"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/btn_save"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.46"
-        app:layout_constraintStart_toEndOf="@+id/btn_save"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintEnd_toStartOf="@+id/btn_record"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btn_retry"
-        android:layout_width="106dp"
-        android:layout_height="29dp"
-        android:background="@drawable/button_gradient"
-        android:text="RETRY"
-        android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/btn_record"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/btn_save"
-        app:layout_constraintTop_toBottomOf="@+id/btn_save"
-        app:layout_constraintVertical_bias="1.0" />
-
-    <androidx.appcompat.widget.AppCompatButton
+    <ImageButton
         android:id="@+id/btn_save"
-        android:layout_width="106dp"
-        android:layout_height="29dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="156dp"
-        android:background="@drawable/button_gradient"
-        android:text="Save"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="56dp"
+        android:background="@drawable/circle_button_blue"
+        android:src="@drawable/ic_save"
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/btn_stp" />
+        app:layout_constraintHorizontal_bias="0.514"
+        app:layout_constraintStart_toEndOf="@+id/btn_record"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
 
     <EditText
         android:id="@+id/et_title"
         android:layout_width="402dp"
         android:layout_height="61dp"
-        android:layout_marginStart="4dp"
         android:layout_marginTop="500dp"
         android:hint="Enter title here"
         android:textAlignment="center"
         android:textColor="@android:color/black"
         android:textColorHint="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btn_stp"
-        android:layout_width="90dp"
-        android:layout_height="90dp"
-        android:layout_marginRight="250dp"
-        android:background="@drawable/circle_button"
-        android:padding="10dp"
-        android:text="Stop Recording"
-        android:textColor="@color/white"
-        android:textSize="12dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_play"
-        app:layout_constraintTop_toTopOf="@id/btn_record" />
+
+
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="16dp"
-        android:text="Start Recording Your Sound Graffiti!"
+        android:text="00:00:00"
         android:textColor="#000000"
         android:textSize="40sp"
         android:textStyle="bold"
+
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-
-        />
-
-
-
+        app:layout_constraintTop_toBottomOf="@+id/gifImageView" />
 
     <pl.droidsonroids.gif.GifImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="252dp"
+        android:id="@+id/gifImageView"
+        android:layout_width="210dp"
+        android:layout_height="189dp"
+        android:layout_marginTop="56dp"
         android:src="@drawable/sound"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.513"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/textViewDetails"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="8dp"
-        android:padding="8dp"
-        android:text="Here you can record an audio clip and post it. You can talk about anything you find interesting about the current location you're at!"
-        android:textColor="#0D0A0A"
-        android:textSize="18sp"
-        android:textStyle="normal"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
