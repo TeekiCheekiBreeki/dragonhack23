@@ -1,66 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="8dp">
 
+
     <TextView
         android:id="@+id/titleTextView"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="1dp"
+        android:layout_marginTop="4dp"
+        android:text="Title"
         android:textSize="18sp"
-        android:textStyle="bold"/>
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:layout_width="398dp"
-        android:layout_height="82dp"
-        android:orientation="horizontal"
-        android:paddingTop="8dp">
+    <TextView
+        android:id="@+id/likesTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:text="Likes: 0"
+        android:textSize="16sp"
+        app:layout_constraintStart_toEndOf="@+id/titleTextView"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/likesTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp" />
+    <TextView
+        android:id="@+id/dislikesTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:text="Dislikes: 0"
+        android:textSize="16sp"
+        app:layout_constraintStart_toEndOf="@+id/likesTextView"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/likeButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="28dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/ic_like"
+        android:backgroundTint="@color/black"
+        android:text="Like"
+        android:textSize="0sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/dislikeButton"
+        android:layout_width="47dp"
+        android:layout_height="51dp"
+        android:layout_marginTop="28dp"
+        android:layout_marginEnd="40dp"
+        android:background="@drawable/ic_dislike"
+        android:backgroundTint="@color/black"
+        android:text="Dislike"
+        android:textSize="0sp"
+        app:layout_constraintEnd_toStartOf="@+id/likeButton"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/playButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="28dp"
+        android:layout_marginEnd="40dp"
+        android:background="@drawable/icons8play50"
+        android:backgroundTint="@color/black"
+        android:text="Play"
+        android:textSize="0sp"
+        app:layout_constraintEnd_toStartOf="@+id/dislikeButton"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/likeButton"
-            android:layout_width="74dp"
-            android:layout_height="70dp"
-            android:layout_marginStart="8dp"
-            android:backgroundTint="@color/black"
-            android:background="@drawable/icons8like50"
-            android:text="Like"
-            android:textSize="0sp" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/dislikeButton"
-            android:layout_width="74dp"
-            android:layout_height="70dp"
-            android:layout_marginStart="8dp"
-            android:backgroundTint="@color/black"
-            android:background="@drawable/icons8unlike50"
-            android:text="Dislike"
-            android:textSize="0sp" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/playButton"
-            android:layout_width="74dp"
-            android:layout_height="70dp"
-            android:layout_marginStart="8dp"
-            android:backgroundTint="@color/black"
-            android:background="@drawable/icons8play50"
-            android:text="Play"
-            android:textSize="0sp" />
-
-        <TextView
-            android:id="@+id/dislikesTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp" />
-
-    </LinearLayout>
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

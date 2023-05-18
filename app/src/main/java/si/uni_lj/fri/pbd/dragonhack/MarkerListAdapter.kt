@@ -2,6 +2,7 @@ package si.uni_lj.fri.pbd.dragonhack
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,7 +19,7 @@ import okhttp3.RequestBody
 import java.io.File
 import java.io.IOException
 
-data class MarkerData(val id: String, var numLikes: Int, var numDislikes: Int, val audioFile: File)
+data class MarkerData(val title: String, val id: Int, var numLikes: Int, var numDislikes: Int, val audioFile: File)
 
 class MarkerListAdapter(private val context: Context, private val markers: List<MarkerData>) : BaseAdapter() {
 
@@ -56,11 +57,11 @@ class MarkerListAdapter(private val context: Context, private val markers: List<
         }
 
         val marker = markers[position]
-        viewHolder.markerTitle.text = marker.id
+        viewHolder.markerTitle.text = marker.title
         viewHolder.markerLikes.text = "Likes: ${marker.numLikes}"
         viewHolder.markerDislikes.text = "Dislikes: ${marker.numDislikes}"
         val id = marker.id
-
+        //get entry_id
         viewHolder.likeButton.setOnClickListener {
             marker.numLikes++
             viewHolder.markerLikes.text = "Likes: ${marker.numLikes}"

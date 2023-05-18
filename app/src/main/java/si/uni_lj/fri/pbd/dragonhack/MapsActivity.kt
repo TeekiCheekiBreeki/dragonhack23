@@ -18,7 +18,6 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import si.uni_lj.fri.pbd.dragonhack.databinding.ActivityMapsBinding
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.ListView
@@ -28,6 +27,7 @@ import com.google.android.gms.maps.model.*
 import okhttp3.*
 import org.json.JSONException
 import org.json.JSONObject
+import si.uni_lj.fri.pbd.dragonhack.databinding.ActivityMapsBinding
 import java.io.File
 import java.io.IOException
 
@@ -52,6 +52,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private val markerLikesMap = HashMap<MarkerOptions, Int>()
     private val markerDislikesMap = HashMap<MarkerOptions, Int>()
+
+    private val markerIdMap = HashMap<MarkerOptions, Int>()
 
 
 
@@ -165,6 +167,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
+
     /*private fun addMarkerAtCurrentLocation() {
         val currentLatLng = LatLng(currentLocation.latitude, currentLocation.longitude)
         mMap.addMarker(
@@ -272,12 +275,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
     private fun displayMarkerList(cluster: MarkerCluster) {
         val markerDataList = cluster.markers.mapNotNull { markerOptions ->
-            val id = markerOptions.title
+            val entryId = markerIdMap[markerOptions]
+            val title = markerOptions.title
             val likes = markerLikesMap[markerOptions] ?: 0
             val dislikes = markerDislikesMap[markerOptions] ?: 0
             val audioFile = markerOptionsAudioMap[markerOptions]
-            if (id != null && audioFile != null) {
-                MarkerData(id, likes, dislikes, audioFile)
+            if (entryId != null && audioFile != null && title != null) {
+                MarkerData(title,entryId, likes, dislikes, audioFile)
             } else {
                 null
             }
@@ -286,6 +290,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         // Show the dialog with the markers in the cluster
         showMarkersDialog(markerDataList)
     }
+
 
 
 
@@ -358,7 +363,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                 .getJSONArray("coordinates").getDouble(0)
                             val audioUrl = audioObject.getString("filename")
                             val title = audioObject.getString("title")
-                            val entryId = audioObject.getString("entry_id")
+                            val entryId = audioObject.getInt("entry_id")
+                            Log.d("ENTRY ID", "$entryId")
                             val numLikes = audioObject.getInt("num_likes")
                             val numDislikes = audioObject.getInt("num_dislikes")
 
@@ -372,8 +378,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                                     markerOptionsAudioMap[markerOptions] = audioFile
                                     markerLikesMap[markerOptions] = numLikes
                                     markerDislikesMap[markerOptions] = numDislikes
+                                    markerIdMap[markerOptions] = entryId  // store the entry_id
                                     // Create a MarkerData object and add it to the list
-                                    val markerData = MarkerData(entryId, numLikes, numDislikes, audioFile)
+                                    val markerData = MarkerData(title, entryId, numLikes, numDislikes, audioFile)
+                                    Log.d("MARKER DATA", "title: $title, likes: $numLikes, dislikes: $numDislikes")
                                     markerDataList.add(markerData)
                                     requestCounter--
                                     var addedToCluster = false
@@ -496,8 +504,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
 
-
-                        private fun calculateDistance(location1: LatLng, location2: LatLng): Double {
+    private fun calculateDistance(location1: LatLng, location2: LatLng): Double {
         val earthRadius = 6371000.0 // Earth's radius in meters
         val lat1 = Math.toRadians(location1.latitude)
         val lon1 = Math.toRadians(location1.longitude)
@@ -517,7 +524,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
 
-    private fun getAudioFile(entryId: String, callback: (File?) -> Unit) {
+    private fun getAudioFile(entryId: Int, callback: (File?) -> Unit) {
         val url = "http://212.101.137.122:8000/audios/$entryId"
         val client = OkHttpClient()
 
@@ -554,6 +561,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         }
     }
+
+
     companion object {
         const val ADD_GRAFFITI_REQUEST_CODE = 101
     }
